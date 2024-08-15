@@ -2,13 +2,14 @@
 const productModel = require('../models/productModel')
 const cloudinary = require('cloudinary').v2;
 
-
-
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_SECRET
 });
+
+
+
 
 // GETTING ALL REGISTERED USERS
 const getAllProducts = async (req, res) => {
@@ -22,6 +23,97 @@ const getAllProducts = async (req, res) => {
         res.status(400).json({ status: false, msg: err.message });
     }
 }
+
+const getfilterProducts =  async (req, res) => {
+    try {
+        // Build query object
+        let query = {};
+
+        // Filter by name (case-insensitive)
+        if (req.query.name) {
+            query.name = { $regex: req.query.name, $options: 'i' };
+        }
+
+        // Filter by SKU
+        if (req.query.sku) {
+            query.sku = req.query.sku;
+        }
+
+        // Filter by price range
+        if (req.query.minPrice && req.query.maxPrice) {
+            query.price = { $gte: req.query.minPrice, $lte: req.query.maxPrice };
+        } else if (req.query.minPrice) {
+            query.price = { $gte: req.query.minPrice };
+        } else if (req.query.maxPrice) {
+            query.price = { $lte: req.query.maxPrice };
+        }
+
+        // Filter by inStock
+        if (req.query.inStock) {
+            query.inStock = req.query.inStock === 'true';
+        }
+
+        // Filter by category
+        // if (req.query.category) {
+        //     query.category = { $in: [req.query.category] };
+        // }
+
+        if (req.query.category) {
+            query.category = {
+                $elemMatch: {
+                    $regex: req.query.category,
+                    $options: 'i'
+                }
+            };
+        }
+
+        // Filter by discount
+        if (req.query.onDiscount) {
+            query.onDiscount = req.query.onDiscount === 'true';
+        }
+
+        // Filter by size
+        if (req.query.size) {
+            query.itemSizes = req.query.size;
+        }
+
+        // Filter by color
+        if (req.query.color) {
+            query.itemColors = req.query.color;
+        }
+
+        // Pagination logic
+        const page = parseInt(req.query.page) || 1; // Default page is 1
+        const limit = parseInt(req.query.limit) || 10; // Default limit is 10 products per page
+        const skip = (page - 1) * limit; // Calculate how many products to skip
+
+        // Get total count of products that match the filter criteria
+        const totalProducts = await productModel.countDocuments(query);
+
+        // Execute the query with pagination
+        const products = await productModel.find(query).skip(skip).limit(limit);
+
+        // Respond with paginated products and additional information
+        res.status(200).json({
+            success: true,
+            count: products.length,
+            page,
+            totalPages: Math.ceil(totalProducts / limit), // Total pages based on limit
+            totalProducts, // Total products for this query
+            data:products
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Error fetching products",
+            error: error.message
+        });
+    }
+};
+
+
+
+
 
 // GET SINGLE Product
 const getSingleProduct = async (req, res) => {
@@ -185,5 +277,6 @@ module.exports = {
     addProduct,
     editProduct,
     deleteProduct,
-    addManyProducts
+    addManyProducts,
+    getfilterProducts
 }
