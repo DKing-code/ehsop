@@ -5,7 +5,9 @@ const {
     getAllDeliveryLocationPrices,
     addNewLocation,
     editLocationPrice,
-    deleteLocationPrice
+    deleteLocationPrice,
+    addTownsToCity,
+    removeTownFromCity
 } = require('../controllers/deliverPricesController')
 
 
@@ -18,6 +20,14 @@ router.post('/',addNewLocation)
 
 // EDIT LOCATION DETA
 router.put('/:id',editLocationPrice)
+
+
+//ADD MORE TOWNS
+router.put('/addTowns/:id',addTownsToCity)
+
+
+//REMOVE TOWN 
+router.put('/removeTowns/:id',removeTownFromCity)
 
 
 // EDIT LOCATION DETA

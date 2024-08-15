@@ -24,7 +24,7 @@ const upload = multer({ dest: 'uploads/' });
 // });
 
 // IMPORT OF CONTROLLERS
-const {addProduct,getAllProducts,getSingleProduct,editProduct,deleteProduct,addManyProducts} = require('../controllers/productController')
+const {addProduct,getAllProducts,getSingleProduct,editProduct,deleteProduct,addManyProducts,getfilterProducts} = require('../controllers/productController')
 
 /**
  * @swagger
@@ -55,6 +55,7 @@ const {addProduct,getAllProducts,getSingleProduct,editProduct,deleteProduct,addM
 // GETTING ALL REGISTERED USRS
 router.get('/',getAllProducts)
 
+router.get('/filteredproduct',getfilterProducts)
 
 
 /**
